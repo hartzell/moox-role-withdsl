@@ -81,4 +81,6 @@ sub instance_eval {
   $self->_instance_evalator()->(@_);
 };
 
+requires qw(dsl_keywords);
+
 1;
