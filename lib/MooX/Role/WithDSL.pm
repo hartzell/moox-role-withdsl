@@ -13,15 +13,18 @@ Returns a list of dsl keywords.
 has dsl_keywords => ( is => 'rw',
                       isa => ArrayRef,
                       default => sub { [ qw(one two three) ] },
+                      trigger => sub { $_[0]->clear_instance_evalator },
                     );
+
 
 =attr instance_evalator
 
-Returns a coderef 
+Returns a coderef
 
 =cut
 
 has instance_evalator => ( builder => 1, # _build_instance_evalator
+                           clearer => 1,
                            init_arg => undef,
                            is => 'ro',
                            isa => CodeRef,
