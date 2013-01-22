@@ -53,7 +53,6 @@ has _instance_evalator => ( builder => 1, # _build__instance_evalator
 
     foreach my $keyword (@{$self->dsl_keywords}) {
       my $coderef = sub {
-        $DB::single = 1;
         return $self->$keyword(@_);
       };
       $stash->add_symbol("&$keyword", $coderef);
