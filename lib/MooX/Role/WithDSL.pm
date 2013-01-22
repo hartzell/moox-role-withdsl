@@ -25,7 +25,8 @@ has dsl_keywords => ( is => 'rw',
 
 PRIVATE
 
-There is no 'u' in _instance_evalator.  That means you should not be in their either....
+There is no 'u' in _instance_evalator.  That means there should be no
+you in there either....
 
 Returns a coderef
 
