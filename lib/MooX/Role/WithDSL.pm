@@ -2,7 +2,11 @@ package MooX::Role::WithDSL;
 # ABSTRACT: Add DSL features to your class.
 
 use Moo::Role;
+
 use MooX::Types::MooseLike::Base qw(ArrayRef CodeRef);
+use Package::Stash;
+
+
 
 =attr dsl_keywords
 
@@ -13,32 +17,35 @@ Returns a list of dsl keywords.
 has dsl_keywords => ( is => 'rw',
                       isa => ArrayRef,
                       lazy => 1,
-                      trigger => sub { $_[0]->clear_instance_evalator },
+                      trigger => sub { $_[0]->clear__instance_evalator },
                     );
 
 
-=attr instance_evalator
+=attr _instance_evalator
+
+PRIVATE
+
+There is no 'u' in _instance_evalator.  That means you should not be in their either....
 
 Returns a coderef
 
 =cut
 
-has instance_evalator => ( builder => 1, # _build_instance_evalator
-                           clearer => 1,
-                           init_arg => undef,
-                           is => 'ro',
-                           isa => CodeRef,
-                           lazy => 1,
-                         );
+has _instance_evalator => ( builder => 1, # _build__instance_evalator
+                            clearer => 1,
+                            init_arg => undef,
+                            is => 'ro',
+                            isa => CodeRef,
+                            lazy => 1,
+                          );
 
-use Package::Stash;
 
 {
   my $ANON_SERIAL = 0;
 
   sub _build_anon_pkg_name { return __PACKAGE__ . "::ANON_" . ++$ANON_SERIAL; }
 
-  sub _build_instance_evalator {
+  sub _build__instance_evalator {
     my $self = shift;
 
     my $pkg_name = _build_anon_pkg_name();
@@ -72,7 +79,7 @@ use Package::Stash;
 sub instance_eval {
   my $self = shift;
 
-  $self->instance_evalator()->(@_);
+  $self->_instance_evalator()->(@_);
 };
 
 1;
