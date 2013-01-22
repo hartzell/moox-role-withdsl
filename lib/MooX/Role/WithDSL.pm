@@ -46,34 +46,34 @@ has _instance_evalator => ( builder => 1, # _build__instance_evalator
 
   sub _build_anon_pkg_name { return __PACKAGE__ . "::ANON_" . ++$ANON_SERIAL; }
 
-  sub _build__instance_evalator {
-    my $self = shift;
+}
 
-    my $pkg_name = _build_anon_pkg_name();
-    my $stash = Package::Stash->new("$pkg_name");
+sub _build__instance_evalator {
+  my $self = shift;
 
-    foreach my $keyword (@{$self->dsl_keywords}) {
-      my $coderef = sub {
-        return $self->$keyword(@_);
-      };
-      $stash->add_symbol("&$keyword", $coderef);
-    }
+  my $pkg_name = _build_anon_pkg_name();
+  my $stash = Package::Stash->new("$pkg_name");
 
-    $DB::single = 1;
-
-    my $coderef = sub { my $code = shift;
-                        my $result;
-                        $code = "package $pkg_name; " . $code;
-                        $result = eval $code;
-                        $DB::single = 1;
-                        return $result;
-                      };
-
-    $stash->add_symbol("&evalator", $coderef);
-
-    return $coderef;
+  foreach my $keyword (@{$self->dsl_keywords}) {
+    my $coderef = sub {
+      return $self->$keyword(@_);
+    };
+    $stash->add_symbol("&$keyword", $coderef);
   }
 
+  $DB::single = 1;
+
+  my $coderef = sub { my $code = shift;
+                      my $result;
+                      $code = "package $pkg_name; " . $code;
+                      $result = eval $code;
+                      $DB::single = 1;
+                      return $result;
+                    };
+
+  $stash->add_symbol("&evalator", $coderef);
+
+  return $coderef;
 }
 
 sub instance_eval {
@@ -82,6 +82,6 @@ sub instance_eval {
   $self->_instance_evalator()->(@_);
 };
 
-requires qw(dsl_keywords);
+ requires qw(dsl_keywords);
 
 1;
