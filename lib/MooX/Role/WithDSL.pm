@@ -12,7 +12,7 @@ Returns a list of dsl keywords.
 
 has dsl_keywords => ( is => 'rw',
                       isa => ArrayRef,
-                      default => sub { [ qw(one two three) ] },
+                      lazy => 1,
                       trigger => sub { $_[0]->clear_instance_evalator },
                     );
 
@@ -31,11 +31,34 @@ has instance_evalator => ( builder => 1, # _build_instance_evalator
                            lazy => 1,
                          );
 
+use Package::Stash;
+
 sub _build_instance_evalator {
   my $self = shift;
-  my $coderef =  sub { my $value = shift;
-                       $self->value($value);
-                     };
+
+  # TODO anonymous package
+  my $stash = Package::Stash->new("M::R::W::Shite");
+
+  foreach my $keyword (@{$self->dsl_keywords}) {
+    my $coderef = sub {
+      $DB::single = 1;
+      return $self->$keyword(@_);
+    };
+    $stash->add_symbol("&$keyword", $coderef);
+  }
+
+  $DB::single = 1;
+
+  my $coderef = sub { my $code = shift;
+                      my $result;
+                      $code = "package M::R::W::Shite; " . $code;
+                      $result = eval $code;
+                      $DB::single = 1;
+                      return $result;
+                    };
+
+  $stash->add_symbol("&evalator", $coderef);
+
   return $coderef;
 }
 
