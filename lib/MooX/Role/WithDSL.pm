@@ -33,39 +33,45 @@ has instance_evalator => ( builder => 1, # _build_instance_evalator
 
 use Package::Stash;
 
-sub _build_instance_evalator {
-  my $self = shift;
+{
+  my $ANON_SERIAL = 0;
 
-  # TODO anonymous package
-  my $stash = Package::Stash->new("M::R::W::Shite");
+  sub _build_anon_pkg_name { return __PACKAGE__ . "::ANON_" . ++$ANON_SERIAL; }
 
-  foreach my $keyword (@{$self->dsl_keywords}) {
-    my $coderef = sub {
-      $DB::single = 1;
-      return $self->$keyword(@_);
-    };
-    $stash->add_symbol("&$keyword", $coderef);
+  sub _build_instance_evalator {
+    my $self = shift;
+
+    my $pkg_name = _build_anon_pkg_name();
+    my $stash = Package::Stash->new("$pkg_name");
+
+    foreach my $keyword (@{$self->dsl_keywords}) {
+      my $coderef = sub {
+        $DB::single = 1;
+        return $self->$keyword(@_);
+      };
+      $stash->add_symbol("&$keyword", $coderef);
+    }
+
+    $DB::single = 1;
+
+    my $coderef = sub { my $code = shift;
+                        my $result;
+                        $code = "package $pkg_name; " . $code;
+                        $result = eval $code;
+                        $DB::single = 1;
+                        return $result;
+                      };
+
+    $stash->add_symbol("&evalator", $coderef);
+
+    return $coderef;
   }
 
-  $DB::single = 1;
-
-  my $coderef = sub { my $code = shift;
-                      my $result;
-                      $code = "package M::R::W::Shite; " . $code;
-                      $result = eval $code;
-                      $DB::single = 1;
-                      return $result;
-                    };
-
-  $stash->add_symbol("&evalator", $coderef);
-
-  return $coderef;
 }
 
 sub instance_eval {
   my $self = shift;
-#  my $coderef = $self->instance_evalator();
-#  $coderef->(@_);
+
   $self->instance_evalator()->(@_);
 };
 
