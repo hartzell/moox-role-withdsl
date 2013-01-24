@@ -1,3 +1,0 @@
-
-* fix YAS so that it doesn't prefix blank lines in template with
-  whitespace when inserting them.
