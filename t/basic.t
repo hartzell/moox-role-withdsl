@@ -12,13 +12,8 @@ use Test::More;
 
   has x => (is => 'rw',);
   has y => (is => 'rw',);
-  has dsl_keywords => (
-                    builder => "_build_dsl_keywords",
-                    is => "ro",
-                    isa => ArrayRef,
-                    lazy => 1,
-                   );
 
+  # required by WithDSL
   sub _build_dsl_keywords {
     my $self = shift;
     return( [qw( x y )] );
