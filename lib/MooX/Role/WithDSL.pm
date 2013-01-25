@@ -54,6 +54,7 @@ statements from the DSL in that package.
 
 use Moo::Role;
 
+use Data::OptList;
 use MooX::Types::MooseLike::Base qw(ArrayRef CodeRef);
 use Package::Stash;
 
@@ -123,10 +124,22 @@ sub _build__instance_evalator {
 
     # make a set of closures for keywords that curry out the invocant
     # and add them to the package.
-    foreach my $keyword ( @{ $self->dsl_keywords } ) {
+    my $keywords = Data::OptList::mkopt_hash( $self->dsl_keywords,
+        { moniker => 'keyword list' }, ['HASH'], );
+
+    # name/keyword pairs, DSL keyword is explicitly named or use method name.
+    my @pairs = map { [ $_ => $keywords->{$_}->{as} || $_ ] } keys %$keywords;
+
+    foreach my $pair (@pairs) {
+        my $method  = $pair->[0];
+        my $keyword = $pair->[1];
+
         my $coderef = sub {
-            return $self->$keyword(@_);
+            return $self->$method(@_);
         };
+
+        die "Attempted to redefine method named \"$keyword\""
+            if $stash->has_symbol("&$keyword");
         $stash->add_symbol( "&$keyword", $coderef );
     }
 
