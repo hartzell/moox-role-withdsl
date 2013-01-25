@@ -3,25 +3,14 @@
 use strict;
 use warnings;
 
+use lib qw(t/lib);
+
 use Test::More;
 use Test::Fatal;
 
-{
-    package BasicDSL;
-    use Moo;
-    use MooX::Types::MooseLike::Base qw(ArrayRef CodeRef);
-
-    has x => ( is => 'rw', );
-    has y => ( is => 'rw', );
-    has z => ( is => 'rw', );
-
-    # required by WithDSL
-    sub _build_dsl_keywords {
-        my $self = shift;
-        return ( [qw( x y ), z => {as => 'omega'}] );
-    }
-
-    with qw( MooX::Role::WithDSL );
+BEGIN {
+    use_ok('BasicDSL');
+    use_ok('InvalidDSL');
 }
 
 my $dsl = BasicDSL->new();
@@ -49,27 +38,7 @@ like (exception { my $fails = $dsl->instance_eval("z(26); z();"); },
       qr/Undefined subroutine &MooX::Role::WithDSL::ANON_\d+::z/,
       'Attempt to use z dies as expected');
 
-{
-    package InvalidDSL;
-    # attempts to redefine z as x when x already exists.
-    use Moo;
-    use MooX::Types::MooseLike::Base qw(ArrayRef CodeRef);
-
-    has x => ( is => 'rw', );
-    has y => ( is => 'rw', );
-    has z => ( is => 'rw', );
-
-    # required by WithDSL
-    sub _build_dsl_keywords {
-        my $self = shift;
-        return ( [qw( x y ), z => {as => 'x'}] );
-    }
-
-    with qw( MooX::Role::WithDSL );
-
-    1;
-}
-
+## make sure invalid renaming throws a fit.
 my $invalid_dsl = InvalidDSL->new();
 
 like (exception { my $fails = $invalid_dsl->instance_eval("x(26); x();"); },
