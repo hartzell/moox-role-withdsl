@@ -60,10 +60,10 @@ use Package::Stash;
 
 =attr dsl_keywords
 
-Returns an arrayref of dsl keywords.
+Returns an arrayref of dsl keyword info.
 
-Lazy, classes which consume the role are required to supply a builder named
-C<_build_dsl_keywords>.
+It is lazy.  Classes which consume the role are required to supply a builder
+named C<_build_dsl_keywords>.
 
 =requires _build_dsl_keywords
 
@@ -172,7 +172,7 @@ sub _build__instance_evalator {
 
 =method instance_eval
 
-Something kind-a similar to Ruby's instance_eval.  Takes a string and evaluates
+Something kind-a-similar to Ruby's instance_eval.  Takes a string and evaluates
 it using eval(), The evaluation happens in a package that has been populated
 with a set of functions that map to methods in this class with the instance
 curried out.
