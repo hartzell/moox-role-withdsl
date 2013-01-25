@@ -27,10 +27,12 @@ package MooX::Role::WithDSL;
 
     # make a new instance
     my $dsl = MyClassWithDSL->new();
+
     my $code = <<EOC;
     add_values(qw(2 1));
     add_values(qw(3));
     EOC
+
     my $return_value = $dsl->instance_eval($code);
     cmp_deeply($dsl->values, bag(qw(1 2 3)), "Values were added");
 
@@ -38,6 +40,15 @@ package MooX::Role::WithDSL;
 
 
 =head1 DESCRIPTION
+
+This package implement a Moo{,se} compatible role that makes it easy to develop
+domain specific languages (DSL's).  It provides a simple interface,
+L</instance_eval>, for evaluating snippets of a DSL with respect to a
+particular instance of a class that consumes the role.  The class specifies a
+subset of its methods that become the routines in the DSL.  Each instance of
+the class builds a private package containings curried versions of these
+routines bound to that instance and has a routine for using C<eval> to execute
+statements from the DSL in that package.
 
 =cut
 
@@ -48,8 +59,16 @@ use Package::Stash;
 
 =attr dsl_keywords
 
-Returns an arrayref of dsl keywords.  Lazy, classes which consume the
-role are required to supply a builder named C<_build_dsl_keywords>.
+Returns an arrayref of dsl keywords.
+
+Lazy, classes which consume the role are required to supply a builder named
+C<_build_dsl_keywords>.
+
+=requires _build_dsl_keywords
+
+A subrouting (used as the Moo{,se} builder for the L</dsl_keywords> attribute)
+that returns an array reference containing the list of methods that should be
+used as keywords in the DSL.
 
 =cut
 
@@ -68,7 +87,7 @@ PRIVATE
 There is no 'u' in _instance_evalator.  That means there should be no
 you in there either....
 
-Returns a coderef that is used in the instance_eval() method.
+Returns a coderef that is used by the instance_eval() method.
 
 =cut
 
@@ -90,11 +109,11 @@ has _instance_evalator => (
 }
 
 ##
-## Set up an environment (anonymous package) in which to execute code
-## that is being instance_eval'ed, push curried closures into the
-## package for each fo the closures, and build a coderef that switches
-## to that package, does the eval, dies if the eval had trouble and
-## otherwise returns the eval's return value.
+## - set up an environment (anonymous package) in which to execute code that is
+##   being instance_eval'ed,
+## - push curried closures into the package for each of the closures,
+## - and build a coderef that switches to that package, does the eval,
+##   dies if the eval had trouble andotherwise returns the eval's return value.
 ##
 sub _build__instance_evalator {
     my $self = shift;
@@ -123,10 +142,10 @@ sub _build__instance_evalator {
 
 =method instance_eval
 
-Something similar to Ruby's instance_eval.  Takes a string and
-evaluates it using eval(), The evaluation happens in a package that
-has been populated with a set of functions that map to methods in this
-class with the instance curried out.
+Something kind-a similar to Ruby's instance_eval.  Takes a string and evaluates
+it using eval(), The evaluation happens in a package that has been populated
+with a set of functions that map to methods in this class with the instance
+curried out.
 
 See the synopsis for an example.
 
