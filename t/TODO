@@ -1,0 +1,3 @@
+
+- test that the instance_eval gets scalar/list/... context correct for
+  its return value.
