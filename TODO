@@ -1,0 +1,4 @@
+
+* Look at Eval::Closure, see if I can use it instead of if it has any
+  tricks I need to pick up.
+
